@@ -24,6 +24,8 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password, password)
 
+    def __str__(self):
+        return self.nombre
 
 class Producto(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -31,3 +33,12 @@ class Producto(db.Model):
     descripcion = db.Column(db.String(255), nullable=True)
     precio = db.Column(db.Numeric(10, 2), nullable=False)
     stock = db.Column(db.Integer, nullable=False, default=0)
+
+# Relación con la tabla de ventas
+class Ventas(db.Model):
+    id_venta = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey('user.id_usuario'), nullable=False)
+    fecha_venta = db.Column(db.DateTime, default=datetime.utcnow)
+    total = db.Column(db.Numeric(10, 2), nullable=False)
+
+    usuario = db.relationship('User', backref='ventas')
