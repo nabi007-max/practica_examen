@@ -18,7 +18,14 @@ class SecurityModelView(ModelView):
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for("auth.login"))
     
+
+class VentasView(SecurityModelView):
+    column_list = ['usuario', 'fecha_venta', 'total']
+    column_labels = {'usuario': 'Usuario'}
+    form_columns = ['id_usuario', 'fecha_venta', 'total']
+    form_labels = {'id_usuario': 'Usuario'}
     
+     
 def configuracion_admin():
     admin.add_view(SecurityModelView(User, db.session))
     admin.add_view(SecurityModelView(Producto, db.session))
