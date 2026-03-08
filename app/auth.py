@@ -29,16 +29,52 @@ def inicio():
 
 @auth_bp.route('/login', methods = ['GET','POST']) 
 def login():
+    login_error = None
+
     if request.method == "POST":
+        nombreusuario = request.form.get("nombreusuario", "").strip()
+        contrasenia = request.form.get("contrasenia", "")
         usuario = User.query.filter_by(
-            nombre = request.form.get("nombreusuario")
+            nombre=nombreusuario
         ).first()
         
-        if usuario and usuario.check_password(request.form.get("contrasenia")):
+        if usuario and usuario.check_password(contrasenia):
             login_user(usuario)
             return redirect("/admin")
+        login_error = "Usuario o contraseña incorrectos."
     
-    return render_template("login.html")
+    return render_template("login.html", login_error=login_error)
+
+
+@auth_bp.route('/registro', methods=['POST'])
+def registro():
+    nombre = request.form.get("nuevo_nombre", "").strip()
+    email = request.form.get("nuevo_email", "").strip().lower()
+    password = request.form.get("nuevo_password", "")
+    password_confirm = request.form.get("nuevo_password_confirm", "")
+
+    if not nombre or not email or not password or not password_confirm:
+        return render_template("login.html", registro_error="Todos los campos son obligatorios.")
+
+    if password != password_confirm:
+        return render_template("login.html", registro_error="Las contraseñas no coinciden.")
+
+    if User.query.filter_by(nombre=nombre).first():
+        return render_template("login.html", registro_error="El nombre de usuario ya existe.")
+
+    if User.query.filter_by(email=email).first():
+        return render_template("login.html", registro_error="El correo ya está registrado.")
+
+    nuevo_usuario = User(
+        nombre=nombre,
+        email=email,
+        rol="user"
+    )
+    nuevo_usuario.set_password(password)
+    db.session.add(nuevo_usuario)
+    db.session.commit()
+
+    return render_template("login.html", registro_ok="Registro exitoso. Ya puedes iniciar sesión.")
 
 
 @auth_bp.route('/recuperar', methods=['GET', 'POST'])
