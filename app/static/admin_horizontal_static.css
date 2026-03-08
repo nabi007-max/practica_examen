@@ -1,0 +1,130 @@
+/* Horizontal static admin menu with improved visual style */
+:root {
+    --admin-nav-bg-start: #1f2937;
+    --admin-nav-bg-end: #111827;
+    --admin-nav-text: #e5e7eb;
+    --admin-nav-accent: #f59e0b;
+    --admin-nav-hover: #374151;
+    --admin-dropdown-bg: #ffffff;
+    --admin-dropdown-text: #1f2937;
+    --bakery-cream: #fff6e9;
+    --bakery-caramel: #f0d3b4;
+    --bakery-rose: #f5d9d9;
+}
+
+body {
+    background-color: var(--bakery-cream) !important;
+    background-image:
+        radial-gradient(circle at 12% 18%, rgba(245, 217, 217, 0.45) 0 65px, transparent 66px),
+        radial-gradient(circle at 84% 26%, rgba(240, 211, 180, 0.55) 0 72px, transparent 73px),
+        radial-gradient(circle at 30% 82%, rgba(245, 217, 217, 0.35) 0 60px, transparent 61px),
+        repeating-linear-gradient(
+            45deg,
+            rgba(255, 255, 255, 0.32) 0 12px,
+            rgba(255, 255, 255, 0.12) 12px 24px
+        );
+}
+
+.container,
+.col-md-10,
+.content,
+.row > [class*="col-"] {
+    position: relative;
+}
+
+.table-responsive,
+.well,
+.panel,
+.card,
+.content .row {
+    background: rgba(255, 255, 255, 0.78);
+    border-radius: 12px;
+    backdrop-filter: blur(1px);
+}
+
+.navbar-toggle {
+    display: none !important;
+}
+
+.navbar {
+    background: linear-gradient(90deg, var(--admin-nav-bg-start), var(--admin-nav-bg-end)) !important;
+    border: 0 !important;
+    box-shadow: 0 10px 24px rgba(17, 24, 39, 0.25);
+}
+
+.navbar-brand {
+    color: #ffffff !important;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    position: relative;
+    top: -37px;
+}
+
+.navbar-collapse {
+    display: block !important;
+    visibility: visible !important;
+}
+
+.navbar-nav {
+    float: left !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px;
+    margin: 8px 0 !important;
+}
+
+.navbar-nav > li,
+.navbar-nav .nav-item {
+    float: none !important;
+}
+
+.navbar-nav > li > a,
+.navbar-nav .nav-link {
+    display: inline-block !important;
+    white-space: nowrap;
+    color: var(--admin-nav-text) !important;
+    border-radius: 999px;
+    padding: 8px 14px !important;
+    font-weight: 600;
+    transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.navbar-nav > li > a:hover,
+.navbar-nav > li.open > a,
+.navbar-nav > li.active > a {
+    background: var(--admin-nav-hover) !important;
+    color: #ffffff !important;
+    transform: translateY(-1px);
+}
+
+.dropdown-menu {
+    border: 1px solid #e5e7eb !important;
+    border-radius: 12px !important;
+    padding: 8px 0 !important;
+    margin-top: 8px !important;
+    background: var(--admin-dropdown-bg) !important;
+    box-shadow: 0 14px 30px rgba(17, 24, 39, 0.2);
+}
+
+.dropdown-menu > li > a {
+    color: var(--admin-dropdown-text) !important;
+    padding: 10px 14px !important;
+    font-weight: 500;
+}
+
+.dropdown-menu > li > a:hover {
+    background: #fff7ed !important;
+    color: #9a3412 !important;
+}
+
+.navbar-nav > li.open > a:after {
+    content: "";
+    display: inline-block;
+    margin-left: 8px;
+    width: 6px;
+    height: 6px;
+    border-right: 2px solid var(--admin-nav-accent);
+    border-bottom: 2px solid var(--admin-nav-accent);
+    transform: rotate(45deg) translateY(-1px);
+}

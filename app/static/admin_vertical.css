@@ -1,0 +1,28 @@
+/* Vertical menu for Flask-Admin navbar */
+.navbar-collapse {
+    align-items: flex-start !important;
+}
+
+.navbar-nav {
+    float: none !important;
+    margin: 0 !important;
+    width: 100%;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+}
+
+.navbar-nav .nav-item,
+.navbar-nav > li {
+    float: none !important;
+    display: block !important;
+    width: 100%;
+}
+
+.navbar-nav .nav-link,
+.navbar-nav > li > a {
+    display: block !important;
+    width: 100%;
+    padding-top: 8px;
+    padding-bottom: 8px;
+}
