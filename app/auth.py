@@ -1,5 +1,4 @@
 from decimal import Decimal
-﻿from decimal import Decimal
 from io import BytesIO
 
 from flask import (
@@ -33,9 +32,6 @@ def _generate_reset_token(email):
 def _read_reset_token(token, max_age=3600):
     serializer = _get_reset_serializer()
     return serializer.loads(token, salt="password-reset", max_age=max_age)
-
-def _fmt_money(value):
-    return f"{Decimal(value or 0):.2f}"
 
 
 def _fmt_money(value):
@@ -125,27 +121,18 @@ def inicio():
 def login():
     login_error = None
 
-@auth_bp.route("/login", methods=["GET", "POST"])
-def login():
     if request.method == "POST":
-        usuario = User.query.filter_by(nombre=request.form.get("nombreusuario")).first()
-
-        if usuario and usuario.check_password(request.form.get("contrasenia")):
-            login_user(usuario)
-            return redirect("/admin")
-
-    return render_template("login.html")
         nombreusuario = request.form.get("nombreusuario", "").strip()
         contrasenia = request.form.get("contrasenia", "")
-        usuario = User.query.filter_by(
-            nombre=nombreusuario
-        ).first()
-        
+        usuario = User.query.filter_by(nombre=nombreusuario).first()
+
         if usuario and usuario.check_password(contrasenia):
             login_user(usuario)
             return redirect("/admin")
 
-    return render_template("login.html")
+        login_error = "Usuario o contraseña incorrectos."
+
+    return render_template("login.html", login_error=login_error)
 
 
 @auth_bp.route("/registro", methods=["POST"])
