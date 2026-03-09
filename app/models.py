@@ -32,6 +32,7 @@ class User(db.Model, UserMixin):
     def __str__(self):
         return self.nombre or f"Usuario {self.id_usuario}"
 
+        return self.nombre
 
 class Producto(db.Model):
     __tablename__ = "producto"
@@ -179,3 +180,11 @@ def _recalcular_total_venta(session, flush_context):
             .where(Venta.id == venta_id)
             .values(total=total_query)
         )
+# Relación con la tabla de ventas
+class Ventas(db.Model):
+    id_venta = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    id_usuario = db.Column(db.Integer, db.ForeignKey('user.id_usuario'), nullable=False)
+    fecha_venta = db.Column(db.DateTime, default=datetime.utcnow)
+    total = db.Column(db.Numeric(10, 2), nullable=False)
+
+    usuario = db.relationship('User', backref='ventas')

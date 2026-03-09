@@ -10,6 +10,7 @@ from markupsafe import Markup
 
 from .extensions import admin, db
 from .models import DetalleVenta, Producto, User, Venta
+from .models import User
 
 AdminIndexView.extra_css = ["/static/admin_horizontal_static.css"]
 
@@ -140,3 +141,7 @@ def configuracion_admin():
     admin.add_view(VentaAdminView(Venta, db.session))
     admin.add_view(DetalleVentaAdminView(DetalleVenta, db.session))
     admin.add_link(MenuLink(name="Cerrar sesion", url="/logout"))
+    
+def configuracion_admin():
+    admin.add_view(SecurityModelView(User, db.session))
+    admin.add_link(MenuLink(name="Cerrar sesión", url="/logout"))
