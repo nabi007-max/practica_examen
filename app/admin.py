@@ -17,9 +17,17 @@ AdminIndexView.extra_css = ["/static/admin_horizontal_static.css"]
 
 class SecurityModelView(ModelView):
     extra_css = ["/static/admin_horizontal_static.css"]
+    disallow_for_usuario = False
 
     def is_accessible(self):
-        return current_user.is_authenticated
+        if not current_user.is_authenticated:
+            return False
+
+        # El perfil "usuario" solo puede acceder a Venta y DetalleVenta.
+        if self.disallow_for_usuario and getattr(current_user, "rol", None) == "usuario":
+            return False
+
+        return True
 
     def inaccessible_callback(self, name, **kwargs):
         return redirect(url_for("auth.login"))
@@ -27,6 +35,7 @@ class SecurityModelView(ModelView):
 
 class UserAdminView(SecurityModelView):
     column_exclude_list = ["password"]
+    disallow_for_usuario = True
 
 
 class VentaAdminView(SecurityModelView):
@@ -155,7 +164,9 @@ class DetalleVentaAdminView(SecurityModelView):
 def configuracion_admin():
 
     admin.add_view(UserAdminView(User, db.session))
-    admin.add_view(SecurityModelView(Producto, db.session))
+    producto_view = SecurityModelView(Producto, db.session)
+    producto_view.disallow_for_usuario = True
+    admin.add_view(producto_view)
     admin.add_view(VentaAdminView(Venta, db.session))
     admin.add_view(DetalleVentaAdminView(DetalleVenta, db.session))
 
