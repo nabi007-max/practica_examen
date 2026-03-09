@@ -1,4 +1,4 @@
-﻿from datetime import datetime
+from datetime import datetime
 
 from flask import flash, redirect, url_for
 from flask_admin import AdminIndexView
@@ -10,7 +10,7 @@ from markupsafe import Markup
 
 from .extensions import admin, db
 from .models import DetalleVenta, Producto, User, Venta
-from .models import User
+
 
 AdminIndexView.extra_css = ["/static/admin_horizontal_static.css"]
 
@@ -43,6 +43,7 @@ class VentaAdminView(SecurityModelView):
 
         try:
             for venta in ventas:
+
                 if venta.estado in ("confirmada", "anulada"):
                     omitidas += 1
                     continue
@@ -53,95 +54,109 @@ class VentaAdminView(SecurityModelView):
 
                 for detalle in venta.detalles:
                     producto = detalle.producto
-                    if producto is None:
-                        raise ValueError(f"Detalle sin producto en venta #{venta.id}.")
 
-                    stock_actual = int(producto.stock or 0)
-                    cantidad = int(detalle.cantidad or 0)
-                    if stock_actual < cantidad:
+                    if producto is None:
+                        raise ValueError(f"Detalle sin producto en venta #{venta.id}")
+
+                    if producto.stock < detalle.cantidad:
                         raise ValueError(
-                            f"Stock insuficiente para '{producto.nombre}' en venta #{venta.id}."
+                            f"Stock insuficiente para '{producto.nombre}' en venta #{venta.id}"
                         )
 
                 for detalle in venta.detalles:
-                    detalle.producto.stock = int(detalle.producto.stock or 0) - int(detalle.cantidad or 0)
+                    detalle.producto.stock -= detalle.cantidad
 
                 venta.estado = "confirmada"
                 venta.fecha_confirmacion = datetime.utcnow()
                 confirmadas += 1
 
             self.session.commit()
-            flash(f"Ventas confirmadas: {confirmadas}. Omitidas: {omitidas}.", "success")
+            flash(f"Ventas confirmadas: {confirmadas} | Omitidas: {omitidas}", "success")
+
         except Exception as ex:
             self.session.rollback()
             flash(str(ex), "error")
 
     @action("anular", "Anular ventas", "Anular ventas seleccionadas?")
     def action_anular(self, ids):
+
         ventas = self.session.query(Venta).filter(Venta.id.in_(ids)).all()
+
         anuladas = 0
         omitidas = 0
 
         try:
             for venta in ventas:
+
                 if venta.estado != "confirmada":
                     omitidas += 1
                     continue
 
                 for detalle in venta.detalles:
-                    producto = detalle.producto
-                    if producto is None:
-                        continue
-                    producto.stock = int(producto.stock or 0) + int(detalle.cantidad or 0)
+                    detalle.producto.stock += detalle.cantidad
 
                 venta.estado = "anulada"
                 anuladas += 1
 
             self.session.commit()
-            flash(f"Ventas anuladas: {anuladas}. Omitidas: {omitidas}.", "success")
+
+            flash(f"Ventas anuladas: {anuladas} | Omitidas: {omitidas}", "success")
+
         except Exception as ex:
             self.session.rollback()
             flash(str(ex), "error")
 
     def on_model_change(self, form, model, is_created):
+
         if not is_created and model.estado != "borrador":
-            raise ValueError("Solo se puede editar una venta en estado borrador.")
+            raise ValueError("Solo se puede editar una venta en estado borrador")
+
         return super().on_model_change(form, model, is_created)
 
     def delete_model(self, model):
+
         if model.estado != "borrador":
-            raise ValueError("Solo se puede eliminar una venta en estado borrador.")
+            raise ValueError("Solo se puede eliminar una venta en estado borrador")
+
         return super().delete_model(model)
 
     def _comprobante_formatter(self, context, model, name):
+
         href = url_for("auth.venta_pdf", venta_id=model.id)
+
         return Markup(f'<a href="{href}" target="_blank">Descargar PDF</a>')
 
-    column_formatters = {"comprobante": _comprobante_formatter}
+    column_formatters = {
+        "comprobante": _comprobante_formatter
+    }
 
 
 class DetalleVentaAdminView(SecurityModelView):
+
     column_list = ["id", "venta", "producto", "cantidad", "precio_unitario", "subtotal"]
+
     form_columns = ["venta", "producto", "cantidad"]
 
     def on_model_change(self, form, model, is_created):
+
         if model.venta and model.venta.estado != "borrador":
-            raise ValueError("Solo puedes modificar detalles de una venta en borrador.")
+            raise ValueError("Solo puedes modificar detalles de una venta en borrador")
+
         return super().on_model_change(form, model, is_created)
 
     def on_model_delete(self, model):
+
         if model.venta and model.venta.estado != "borrador":
-            raise ValueError("Solo puedes eliminar detalles de una venta en borrador.")
+            raise ValueError("Solo puedes eliminar detalles de una venta en borrador")
+
         return super().on_model_delete(model)
 
 
 def configuracion_admin():
+
     admin.add_view(UserAdminView(User, db.session))
     admin.add_view(SecurityModelView(Producto, db.session))
     admin.add_view(VentaAdminView(Venta, db.session))
     admin.add_view(DetalleVentaAdminView(DetalleVenta, db.session))
-    admin.add_link(MenuLink(name="Cerrar sesion", url="/logout"))
-    
-def configuracion_admin():
-    admin.add_view(SecurityModelView(User, db.session))
+
     admin.add_link(MenuLink(name="Cerrar sesión", url="/logout"))

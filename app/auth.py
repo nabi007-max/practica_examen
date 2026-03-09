@@ -1,3 +1,4 @@
+from decimal import Decimal
 ﻿from decimal import Decimal
 from io import BytesIO
 
@@ -32,6 +33,9 @@ def _generate_reset_token(email):
 def _read_reset_token(token, max_age=3600):
     serializer = _get_reset_serializer()
     return serializer.loads(token, salt="password-reset", max_age=max_age)
+
+def _fmt_money(value):
+    return f"{Decimal(value or 0):.2f}"
 
 
 def _fmt_money(value):
@@ -121,6 +125,8 @@ def inicio():
 def login():
     login_error = None
 
+@auth_bp.route("/login", methods=["GET", "POST"])
+def login():
     if request.method == "POST":
         usuario = User.query.filter_by(nombre=request.form.get("nombreusuario")).first()
 
@@ -138,15 +144,14 @@ def login():
         if usuario and usuario.check_password(contrasenia):
             login_user(usuario)
             return redirect("/admin")
-        login_error = "Usuario o contraseña incorrectos."
-    
-    return render_template("login.html", login_error=login_error)
+
+    return render_template("login.html")
 
 
-@auth_bp.route('/registro', methods=['POST'])
+@auth_bp.route("/registro", methods=["POST"])
 def registro():
     nombre = request.form.get("nuevo_nombre", "").strip()
-    email = request.form.get("nuevo_email", "").strip().lower()
+    email = request.form.get("nuevo_email", "").strip()
     password = request.form.get("nuevo_password", "")
     password_confirm = request.form.get("nuevo_password_confirm", "")
 
@@ -154,24 +159,20 @@ def registro():
         return render_template("login.html", registro_error="Todos los campos son obligatorios.")
 
     if password != password_confirm:
-        return render_template("login.html", registro_error="Las contraseñas no coinciden.")
+        return render_template("login.html", registro_error="Las contrasenas no coinciden.")
 
     if User.query.filter_by(nombre=nombre).first():
         return render_template("login.html", registro_error="El nombre de usuario ya existe.")
 
     if User.query.filter_by(email=email).first():
-        return render_template("login.html", registro_error="El correo ya está registrado.")
+        return render_template("login.html", registro_error="El correo ya esta registrado.")
 
-    nuevo_usuario = User(
-        nombre=nombre,
-        email=email,
-        rol="user"
-    )
-    nuevo_usuario.set_password(password)
-    db.session.add(nuevo_usuario)
+    usuario = User(nombre=nombre, email=email, rol="usuario")
+    usuario.set_password(password)
+    db.session.add(usuario)
     db.session.commit()
 
-    return render_template("login.html", registro_ok="Registro exitoso. Ya puedes iniciar sesión.")
+    return render_template("login.html", registro_ok="Cuenta creada correctamente. Ya puedes iniciar sesion.")
 
 
 @auth_bp.route("/recuperar", methods=["GET", "POST"])
