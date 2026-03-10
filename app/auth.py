@@ -154,7 +154,7 @@ def registro():
     if User.query.filter_by(email=email).first():
         return render_template("login.html", registro_error="El correo ya esta registrado.")
 
-    usuario = User(nombre=nombre, email=email, rol="usuario")
+    usuario = User(nombre=nombre, email=email, rol="vendedor")
     usuario.set_password(password)
     db.session.add(usuario)
     db.session.commit()

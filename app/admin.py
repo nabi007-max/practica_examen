@@ -17,14 +17,14 @@ AdminIndexView.extra_css = ["/static/admin_horizontal_static.css"]
 
 class SecurityModelView(ModelView):
     extra_css = ["/static/admin_horizontal_static.css"]
-    disallow_for_usuario = False
+    disallow_for_vendedor = False
 
     def is_accessible(self):
         if not current_user.is_authenticated:
             return False
 
-        # El perfil "usuario" solo puede acceder a Venta y DetalleVenta.
-        if self.disallow_for_usuario and getattr(current_user, "rol", None) == "usuario":
+        # El perfil "vendedor" solo puede acceder a Venta y DetalleVenta.
+        if self.disallow_for_vendedor and getattr(current_user, "rol", None) == "vendedor":
             return False
 
         return True
@@ -35,7 +35,14 @@ class SecurityModelView(ModelView):
 
 class UserAdminView(SecurityModelView):
     column_exclude_list = ["password"]
-    disallow_for_usuario = True
+    disallow_for_vendedor = True
+
+
+class ProductoAdminView(SecurityModelView):
+    disallow_for_vendedor = True
+    column_exclude_list = ["detalles_venta"]
+    form_excluded_columns = ["detalles_venta"]
+    column_details_exclude_list = ["detalles_venta"]
 
 
 class VentaAdminView(SecurityModelView):
@@ -43,6 +50,23 @@ class VentaAdminView(SecurityModelView):
     form_columns = ["fecha", "cliente_nombre", "usuario"]
     column_labels = {"comprobante": "Comprobante"}
     can_view_details = True
+
+    def _usuario_autenticado(self):
+        if not current_user.is_authenticated:
+            return []
+        return User.query.filter_by(id_usuario=current_user.id).all()
+
+    def create_form(self, obj=None):
+        form = super().create_form(obj)
+        form.usuario.query_factory = self._usuario_autenticado
+        form.usuario.data = User.query.get(current_user.id)
+        return form
+
+    def edit_form(self, obj=None):
+        form = super().edit_form(obj)
+        form.usuario.query_factory = self._usuario_autenticado
+        form.usuario.data = User.query.get(current_user.id)
+        return form
 
     @action("confirmar", "Confirmar ventas", "Confirmar ventas seleccionadas?")
     def action_confirmar(self, ids):
@@ -116,6 +140,7 @@ class VentaAdminView(SecurityModelView):
             flash(str(ex), "error")
 
     def on_model_change(self, form, model, is_created):
+        model.usuario = User.query.get(current_user.id)
 
         if not is_created and model.estado != "borrador":
             raise ValueError("Solo se puede editar una venta en estado borrador")
@@ -164,9 +189,7 @@ class DetalleVentaAdminView(SecurityModelView):
 def configuracion_admin():
 
     admin.add_view(UserAdminView(User, db.session))
-    producto_view = SecurityModelView(Producto, db.session)
-    producto_view.disallow_for_usuario = True
-    admin.add_view(producto_view)
+    admin.add_view(ProductoAdminView(Producto, db.session))
     admin.add_view(VentaAdminView(Venta, db.session))
     admin.add_view(DetalleVentaAdminView(DetalleVenta, db.session))
 

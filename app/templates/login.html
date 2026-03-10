@@ -88,7 +88,7 @@
         {% endif %}
         <a class="aux-link" href="{{ url_for('auth.recuperar_password') }}">¿Olvidaste tu contraseña?</a>
 
-        <p class="section-title">¿No tienes cuenta? Regístrate como usuario</p>
+        <p class="section-title">¿No tienes cuenta? Regístrate como vendedor</p>
         <form method="POST" action="{{ url_for('auth.registro') }}">
             <input type="text" name="nuevo_nombre" placeholder="Nombre de usuario" required/>
             <input type="email" name="nuevo_email" placeholder="Correo electrónico" required/>

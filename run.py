@@ -39,6 +39,11 @@ def sync_user_table_schema():
             for statement in statements:
                 conn.execute(text(statement))
 
+    with db.engine.begin() as conn:
+        conn.execute(
+            text("UPDATE `user` SET rol = 'vendedor' WHERE rol = 'usuario'")
+        )
+
 
 def sync_venta_table_schema():
     inspector = inspect(db.engine)
